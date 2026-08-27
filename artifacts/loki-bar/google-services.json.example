@@ -1,0 +1,12 @@
+{
+  "placeholder": true,
+  "project_info": {
+    "project_number": "YOUR_FIREBASE_PROJECT_NUMBER",
+    "project_id": "loki-f4791",
+    "storage_bucket": "YOUR_STORAGE_BUCKET"
+  },
+  "client": [{
+    "client_info": {"mobilesdk_app_id": "YOUR_ANDROID_APP_ID", "android_client_info": {"package_name": "com.loki.bar.system"}},
+    "api_key": [{"current_key": "YOUR_FIREBASE_API_KEY"}]
+  }]
+}

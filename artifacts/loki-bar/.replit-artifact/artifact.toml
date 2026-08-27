@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Loki Bar"
+description = "The Loki Bar portal for owner, staff, customer, and developer workflows, with Firebase-backed authentication, role-based access, QR customer identification, and a Capacitor-ready static web build."
+version = "1.0.0"
+id = "artifacts/loki-bar"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20955
+
+[services.development]
+run = "pnpm --filter @workspace/loki-bar run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/loki-bar", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/loki-bar/out"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20955"
+BASE_PATH = "/"

@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+.env.local
+.env*.local
+serviceAccountKey.json
+android/.gradle
+android/app/build
+.DS_Store

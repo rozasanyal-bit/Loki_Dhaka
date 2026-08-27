@@ -1,0 +1,266 @@
+LOKI BAR — EFFICIENT BUILD MODE
+
+You are working on the Loki Bar application.
+
+IMPORTANT:
+I have limited free Replit Agent usage. Be extremely resource-efficient.
+
+Your priority is:
+1. Inspect before changing anything.
+2. Reuse existing code.
+3. Make the smallest necessary changes.
+4. Never rewrite working features unnecessarily.
+5. Never redesign the application unless explicitly requested.
+6. Do not install unnecessary packages.
+7. Do not repeatedly run expensive commands.
+8. Do not ask me questions if the answer can be determined from the project files.
+9. Work in small, verifiable stages.
+10. After each major stage, verify the result before continuing.
+
+PROJECT:
+- App name: Loki Bar
+- App ID: com.loki.bar.system
+- Existing application must NOT be deleted.
+- Use pnpm ONLY. Never use npm or yarn.
+- Preserve the existing Loki design and functionality.
+- Currency: Bangladeshi Taka (৳).
+- The visual style should remain dark, elegant, practical and classy.
+- Do not create a separate colour scheme for customers.
+- Credit should be discreet:
+  "Developed by ARZO"
+  and/or "Roza Sanyal" somewhere appropriate, without making it look promotional.
+
+ROLES:
+
+OWNER / HERSHA:
+- Full dashboard
+- Revenue/profit information
+- Customer profiles
+- Customer spending
+- Visit information
+- Customer status
+- Change customer status
+- Best customers
+- Staff logs
+- Staff management
+- Generate/revoke/rotate staff signup invitation
+- Owner-only controls
+
+STAFF:
+- QR/customer scanning
+- Customer lookup needed for service
+- Orders/sales
+- Shift functions
+- Staff operational information
+- CAN update customer status
+- CAN add appropriate customer/service notes
+- CANNOT access owner financial analytics
+- CANNOT manage staff invitations
+- CANNOT access owner-only controls
+
+CUSTOMER:
+- Own account
+- Personal QR
+- Menu
+- Offers
+- Notifications
+- Basic account information
+
+CUSTOMER MUST NOT RECEIVE:
+- Spending/lifetime value
+- Visit history/count
+- Internal customer status
+- Customer ranking
+- Staff notes
+- Owner observations
+- Owner analytics
+
+IMPORTANT SECURITY RULE:
+Do not merely hide private customer information in the UI.
+Enforce permissions at the backend/database/API level so unauthorized users cannot obtain the information through API responses or Firestore queries.
+
+MOBILE:
+Prepare the existing app for Capacitor Android and iOS.
+
+App ID:
+com.loki.bar.system
+
+App name:
+Loki Bar
+
+Required:
+- Android
+- iOS
+- Camera permission
+- Internet/network access
+- Android notification permission
+- Push notification preparation
+- Firebase/FCM placeholders where native configuration is required
+- QR scanning using Capacitor barcode scanner where compatible
+- Web QR fallback if necessary
+- Splash/icon resources
+- PWA support where useful
+
+DEPLOYED WEB APP:
+https://loki-bar-system--somayarorozasid.replit.app/
+
+BUILD:
+First identify the actual application directory and package manager/workspace structure.
+
+Before modifying anything, inspect:
+- root package.json
+- pnpm-workspace.yaml
+- actual app package.json
+- existing Vite/Next configuration
+- existing Capacitor configuration
+- Firebase configuration
+- existing QR implementation
+- authentication
+- Firestore rules
+- service worker/PWA files
+- public icons/assets
+- scripts
+- existing Android/iOS files
+
+DO NOT assume the directory structure.
+
+FIRST ACTION:
+Run only lightweight inspection commands.
+
+Determine:
+1. Actual app directory.
+2. Framework.
+3. Build command.
+4. Existing mobile/native setup.
+5. Existing QR implementation.
+6. Existing Firebase/auth structure.
+7. Existing scripts.
+8. Existing build problems.
+
+Then report a SHORT summary and proceed.
+
+BUILD STRATEGY:
+
+PHASE 1 — WEB BUILD
+Run:
+pnpm install
+pnpm build
+
+Only fix actual errors.
+
+Do NOT:
+- upgrade unrelated dependencies
+- rewrite components
+- replace working libraries
+- restructure the application
+- change UI unnecessarily
+
+If the build succeeds, STOP and move to Phase 2.
+
+PHASE 2 — CAPACITOR
+Prepare Android/iOS using the existing web application.
+
+Use pnpm only.
+
+Do not regenerate an existing native project unless necessary.
+
+Run the minimum commands required.
+
+PHASE 3 — ANDROID
+Attempt the debug build.
+
+If Android SDK/Gradle is unavailable:
+STOP.
+Do not waste Agent usage attempting many workarounds.
+
+Instead create/fix a GitHub Actions workflow or clearly explain the minimum external build step.
+
+PHASE 4 — IOS
+Prepare the iOS project but do not waste resources attempting to simulate Xcode signing in Replit.
+
+Clearly identify anything that requires:
+- Mac
+- Xcode
+- Apple Developer account
+- APNs
+
+PHASE 5 — SECURITY
+Before production:
+- Check Firestore rules
+- Check role permissions
+- Check customer privacy
+- Check HMAC/server secret handling
+- Never expose server secrets to client code
+- Never print secrets into logs
+- Never commit secrets
+- Preserve rate limiting
+- Flag any insecure existing implementation instead of silently ignoring it
+
+SECRET RULE:
+NEVER ask me to paste passwords, GitHub 2FA codes, recovery codes, private keys, Firebase private keys, or server secrets into chat.
+
+If an environment variable is required, tell me the variable NAME only.
+
+EFFICIENCY RULES:
+
+Use this decision process before every change:
+
+"Is this required for the requested functionality?"
+
+If NO → don't change it.
+
+"Does existing code already do this?"
+
+If YES → reuse it.
+
+"Can one small change solve it?"
+
+If YES → do that instead of restructuring.
+
+Do not repeatedly run:
+- pnpm install
+- full builds
+- dependency audits
+- tests unrelated to the current change
+
+Run tests/builds only after meaningful changes.
+
+When an error occurs:
+1. Read the complete error.
+2. Identify the root cause.
+3. Make one targeted fix.
+4. Re-run the smallest relevant verification.
+5. Do not randomly change multiple files.
+
+TOKEN/AGENT USAGE:
+Keep explanations extremely concise.
+
+Do not provide long tutorials while working.
+
+Use this format after each phase:
+
+STATUS: PASS / BLOCKED
+
+DONE:
+- item
+- item
+
+NEXT:
+- item
+
+BLOCKER:
+- only if applicable
+
+Do not repeatedly explain things already established.
+
+MOST IMPORTANT:
+Do not stop after making mockups, documentation, or a demo.
+
+The goal is an ACTUAL INSTALLABLE LOKI BAR APPLICATION.
+
+Do not claim something is complete unless it has actually been created/tested.
+
+If something cannot be built in Replit, create the best possible build workflow and tell me exactly what remains.
+
+Start now with INSPECTION ONLY.
+Do not modify files until you understand the existing project structure.

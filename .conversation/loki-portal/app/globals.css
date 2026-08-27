@@ -1,0 +1,97 @@
+/* app/globals.css */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-background: #060606;
+  --color-foreground: #f5f3ee;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-serif: var(--font-serif), ui-serif, serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+* {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Shared "Loki after dark" surface treatments ─────────────────────────── */
+
+.loki-view {
+  position: relative;
+}
+
+.loki-card {
+  transition: transform 220ms ease, border-color 220ms ease, background-color 220ms ease;
+  animation: loki-card-in 480ms ease-out both;
+}
+
+.loki-card:hover {
+  border-color: rgba(216, 177, 107, 0.28);
+}
+
+/* Stagger each card slightly so a grid of them settles in rather than
+   popping all at once — gives the portals a calmer, less "dashboard" feel. */
+section > .loki-card:nth-child(1),
+section > article:nth-child(1) .loki-card { animation-delay: 0ms; }
+section > .loki-card:nth-child(2),
+section > article:nth-child(2) { animation-delay: 60ms; }
+section > article:nth-child(3) { animation-delay: 120ms; }
+section > article:nth-child(4) { animation-delay: 180ms; }
+section > article:nth-child(5) { animation-delay: 240ms; }
+section > article:nth-child(6) { animation-delay: 300ms; }
+
+@keyframes loki-card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.loki-button {
+  transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+}
+
+.loki-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.loki-button-primary {
+  box-shadow: 0 10px 30px -10px rgba(201, 164, 94, 0.45);
+}
+
+.loki-button-primary:hover:not(:disabled) {
+  box-shadow: 0 14px 36px -8px rgba(201, 164, 94, 0.55);
+}
+
+/* Gentle floating motion for the entry/login logo mark. */
+@keyframes loki-float-anim {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+.loki-float {
+  animation: loki-float-anim 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loki-float,
+  .loki-card,
+  .loki-button {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Respect safe areas on notched devices when running inside Capacitor. */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
