@@ -43,7 +43,7 @@ export function OwnerSignup() {
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-black px-6 text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,164,94,0.10),transparent_32%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,#e2b34a0.10),transparent_32%)]" />
       <div className="relative w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-3">
           <LokiMark className="h-14 w-14" priority />
@@ -56,14 +56,14 @@ export function OwnerSignup() {
             placeholder="Full name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#d8b16b]/50 transition-colors"
+            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#e2b34a]/50 transition-colors"
           />
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#d8b16b]/50 transition-colors"
+            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#e2b34a]/50 transition-colors"
           />
           <input
             type="password"
@@ -71,7 +71,7 @@ export function OwnerSignup() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSignup()}
-            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#d8b16b]/50 transition-colors"
+            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#e2b34a]/50 transition-colors"
           />
 
           {error && (
@@ -82,7 +82,7 @@ export function OwnerSignup() {
             type="button"
             onClick={handleSignup}
             disabled={loading || !name || !email || !password}
-            className="loki-button w-full rounded-full bg-[#c9a45e] py-3.5 text-sm font-semibold text-black disabled:opacity-40"
+            className="loki-button w-full rounded-full bg-[#e2b34a] py-3.5 text-sm font-semibold text-black disabled:opacity-40"
           >
             {loading ? "Creating account…" : "Create owner account"}
           </button>

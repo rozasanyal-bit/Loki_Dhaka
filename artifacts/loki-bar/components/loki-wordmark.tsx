@@ -1,5 +1,14 @@
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 type LogoProps={className?:string;priority?:boolean}
-export function LokiMark({className,priority=false}:LogoProps){return <Image src="/icon.svg" alt="Loki" width={180} height={180} priority={priority} className={cn("select-none object-contain",className)}/>} 
-export function LokiWordmark({className,priority=false}:LogoProps){return <Image src="/loki-wordmark.svg" alt="Loki" width={215} height={48} priority={priority} className={cn("select-none object-contain",className)}/>} 
+
+// The only approved Loki mark: the exact logo supplied by Roza.
+// Gold is never baked into the logo; the white mark stays white and the glow is applied by CSS.
+export function LokiMark({className,priority=false}:LogoProps){
+  return <Image src="/loki-logo-exact.png" alt="Loki" width={192} height={192} priority={priority} className={cn("select-none object-contain loki-logo-glow",className)}/>
+}
+
+// Kept for existing layout imports, but intentionally uses the same approved logo.
+export function LokiWordmark({className,priority=false}:LogoProps){
+  return <Image src="/loki-logo-exact.png" alt="Loki" width={192} height={192} priority={priority} className={cn("select-none object-contain loki-logo-glow",className)}/>
+}

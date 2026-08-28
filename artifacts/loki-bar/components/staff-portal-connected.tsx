@@ -141,7 +141,7 @@ export function StaffPortalConnected() {
           <button
             type="button"
             onClick={handleCameraScan}
-            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#d8b16b]/30 bg-[#d8b16b]/10 px-4 py-3 text-sm font-semibold text-[#f3deaf]"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#e2b34a]/30 bg-[#e2b34a]/10 px-4 py-3 text-sm font-semibold text-[#f3deaf]"
           >
             <QrCode className="h-4 w-4" />
             Scan customer QR
@@ -154,13 +154,13 @@ export function StaffPortalConnected() {
               onChange={(e) => setQrInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleLookup()}
               placeholder="Customer UID…"
-              className="flex-1 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#d8b16b]/40"
+              className="flex-1 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#e2b34a]/40"
             />
             <button
               type="button"
               onClick={() => handleLookup()}
               disabled={lookupStatus === "loading"}
-              className="rounded-xl bg-[#c9a45e] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+              className="rounded-xl bg-[#e2b34a] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
             >
               {lookupStatus === "loading" ? "…" : "Find"}
             </button>
@@ -172,7 +172,7 @@ export function StaffPortalConnected() {
 
           {/* Found customer */}
           {foundUser && (
-            <div className="mt-4 rounded-2xl border border-[#d8b16b]/20 bg-[#d8b16b]/5 p-4 space-y-3">
+            <div className="mt-4 rounded-2xl border border-[#e2b34a]/20 bg-[#e2b34a]/5 p-4 space-y-3">
               <div>
                 <p className="text-base font-semibold text-white">{foundUser.data.name}</p>
                 <p className="text-xs text-white/50">{foundUser.data.email}</p>
@@ -183,7 +183,7 @@ export function StaffPortalConnected() {
                     value={foundUser.data.status ?? DEFAULT_CUSTOMER_STATUS}
                     onChange={(e) => handleStatusChange(e.target.value as CustomerStatus)}
                     disabled={statusSaving}
-                    className="rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-xs text-white/80 outline-none focus:border-[#d8b16b]/40 disabled:opacity-50"
+                    className="rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-xs text-white/80 outline-none focus:border-[#e2b34a]/40 disabled:opacity-50"
                   >
                     {CUSTOMER_STATUSES.map((s) => (
                       <option key={s} value={s} className="bg-black text-white">
@@ -199,7 +199,7 @@ export function StaffPortalConnected() {
                 type="button"
                 onClick={handleLogVisit}
                 disabled={visitStatus === "loading" || visitStatus === "done"}
-                className="w-full rounded-xl bg-[#c9a45e] py-2.5 text-sm font-semibold text-black disabled:opacity-50"
+                className="w-full rounded-xl bg-[#e2b34a] py-2.5 text-sm font-semibold text-black disabled:opacity-50"
               >
                 {visitStatus === "idle"    && "Log visit"}
                 {visitStatus === "loading" && "Logging…"}
@@ -210,7 +210,7 @@ export function StaffPortalConnected() {
               {/* Add note */}
               <div className="pt-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <NotebookPen className="h-3.5 w-3.5 text-[#d8b16b]" />
+                  <NotebookPen className="h-3.5 w-3.5 text-[#e2b34a]" />
                   <p className="text-[11px] uppercase tracking-[0.24em] text-white/40">Note</p>
                 </div>
                 <textarea
@@ -218,7 +218,7 @@ export function StaffPortalConnected() {
                   onChange={(e) => setNoteText(e.target.value)}
                   rows={2}
                   placeholder="Preferences, requests…"
-                  className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#d8b16b]/40"
+                  className="w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#e2b34a]/40"
                 />
                 <button
                   type="button"

@@ -38,13 +38,13 @@ export function LokiLogin() {
   return (
     <div className="loki-view flex min-h-dvh items-center justify-center overflow-hidden bg-black px-6 text-white">
       {/* Ambient glow */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,164,94,0.13),transparent_32%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,#e2b34a0.13),transparent_32%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),transparent)]" />
 
       <div className="relative flex w-full max-w-sm flex-col items-center gap-8">
 
         {/* Full logo mark — helmet + LOKI text */}
-        <div className="loki-float rounded-full border border-white/10 bg-white/[0.03] p-7 shadow-[0_0_90px_rgba(201,164,94,0.14)] backdrop-blur-sm">
+        <div className="loki-float rounded-full border border-white/10 bg-white/[0.03] p-7 shadow-[0_0_90px_#e2b34a0.14)] backdrop-blur-sm">
           <LokiMark className="h-28 w-28" priority />
         </div>
 
@@ -61,7 +61,7 @@ export function LokiLogin() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#d8b16b]/50 focus:bg-white/[0.06] transition-colors"
+            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#e2b34a]/50 focus:bg-white/[0.06] transition-colors"
           />
           <input
             type="password"
@@ -69,7 +69,7 @@ export function LokiLogin() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#d8b16b]/50 focus:bg-white/[0.06] transition-colors"
+            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#e2b34a]/50 focus:bg-white/[0.06] transition-colors"
           />
 
           {error && (
@@ -82,7 +82,7 @@ export function LokiLogin() {
             type="button"
             onClick={handleLogin}
             disabled={loading || !email || !password}
-            className="loki-button w-full rounded-full bg-[#c9a45e] py-3.5 text-sm font-semibold text-black disabled:opacity-40 motion-safe:transform-gpu"
+            className="loki-button w-full rounded-full bg-[#e2b34a] py-3.5 text-sm font-semibold text-black disabled:opacity-40 motion-safe:transform-gpu"
           >
             {loading ? "Signing in…" : "Enter Loki"}
           </button>

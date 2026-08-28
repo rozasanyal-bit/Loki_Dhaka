@@ -1,0 +1,191 @@
+LOKI AGENT — MAXIMUM EFFICIENCY MODE
+
+You are working on the existing Loki Bar application.
+
+I have LIMITED Replit Agent usage. Treat every Agent turn, command, dependency install, build, and file edit as valuable.
+
+PRIMARY RULE:
+Maximize progress per Agent turn while preserving quality.
+
+BEFORE EVERY ACTION:
+1. Inspect first.
+2. Determine whether the action is actually necessary.
+3. Reuse existing code whenever possible.
+4. Make the smallest safe change.
+5. Verify only what the change requires.
+6. Never perform unrelated cleanup.
+
+DO NOT:
+- Redesign working features.
+- Rewrite working components.
+- Refactor for style.
+- Upgrade dependencies unless a concrete blocker requires it.
+- Replace libraries that already work.
+- Create duplicate implementations.
+- Delete existing Loki functionality.
+- Build unrelated workspace projects.
+- Spend Agent usage fixing unrelated packages.
+- Repeatedly run pnpm install.
+- Repeatedly run full builds without a meaningful change.
+- Ask me for information that can be determined from the project.
+- Print secrets, API keys, passwords, tokens, private keys, or environment-variable values.
+- Commit secrets.
+- Invent successful results.
+
+PACKAGE MANAGER:
+Use pnpm ONLY.
+Never use npm.
+Never use yarn.
+
+WORKSPACE RULE:
+This is a monorepo.
+The actual Loki application is:
+artifacts/loki-portal/
+
+Always target Loki specifically when building or testing.
+
+Do NOT accidentally build unrelated workspace applications such as mockup-sandbox unless the task explicitly requires them.
+
+CURRENT KNOWN STATE:
+- Loki is a Next.js 16 static-export application.
+- Firebase Auth/Firestore already exists.
+- Role portals already exist.
+- QR functionality already exists.
+- PWA assets already exist.
+- Capacitor configuration already exists.
+- App ID: com.loki.bar.system
+- App name: Loki Bar
+- Android/iOS native projects have been created.
+- Firebase web configuration is available through Replit Secrets.
+- The Loki web build has previously compiled successfully.
+- Customer-facing data permissions still require a security review before production.
+
+BRANDING:
+Use ONLY the user's supplied Loki logo.
+Do not generate or substitute another logo.
+Logo head must remain white.
+Use a subtle white glow around the head.
+Gold should be rich/brighter gold, not muddy or excessively muted.
+Overall design should remain premium, dark, classy, practical and distinctive.
+Customer portal must NOT have a separate unrelated colour scheme.
+Discreet attribution may use:
+"Developed by ARZO"
+and/or
+"Roza Sanyal"
+without making it promotional.
+
+FUNCTIONAL ROLES:
+
+OWNER / HERSHA:
+- Dashboard
+- Revenue/profit information
+- Customer profiles
+- Customer spending
+- Customer status
+- Change customer status
+- Best customers
+- Staff logs
+- Staff management
+- Staff signup invitation link
+- Generate/revoke/rotate staff invitation
+- Owner-only controls
+
+STAFF:
+- QR scanning
+- Customer lookup required for service
+- Operational functions
+- Update customer status
+- Appropriate service notes
+- Staff activity/logging
+- No owner financial analytics
+- No owner-only controls
+- No staff invitation management
+
+CUSTOMER:
+- Account
+- Personal QR
+- Menu
+- Offers
+- Notifications
+- Basic account information
+
+CUSTOMERS MUST NEVER RECEIVE:
+- Spending/lifetime value
+- Visit history/count
+- Internal customer status
+- Customer ranking
+- Staff notes
+- Owner observations
+- Owner analytics
+
+SECURITY:
+Private information must be protected at backend/database/API level, not merely hidden in the UI.
+
+Never expose server secrets through NEXT_PUBLIC_* variables.
+
+PREFERRED WORKFLOW:
+Work in phases.
+
+PHASE 1:
+Inspect and build only Loki.
+
+PHASE 2:
+Synchronize Capacitor.
+
+PHASE 3:
+Attempt Android debug build.
+
+PHASE 4:
+Prepare iOS native project/build configuration.
+
+PHASE 5:
+Security review.
+
+PHASE 6:
+Final testing and store preparation.
+
+WHEN BLOCKED:
+Do not randomly try fixes.
+
+Instead:
+1. Identify the exact root cause.
+2. Determine whether it is a code problem or environment/infrastructure problem.
+3. Apply one targeted fix if appropriate.
+4. If infrastructure is unavailable, stop and report it.
+5. Prefer a lightweight alternative such as a CI/cloud build configuration rather than wasting Agent usage.
+
+COMMAND EFFICIENCY:
+Use the smallest relevant command.
+
+For Loki build:
+cd artifacts/loki-portal
+pnpm build
+
+For Capacitor synchronization:
+run from the correct project/root directory based on the existing workspace configuration.
+
+Do not run broad monorepo commands when a Loki-specific command is sufficient.
+
+REPORT FORMAT:
+At the end of every task:
+
+STATUS: PASS / BLOCKED
+
+DONE:
+- concise item
+- concise item
+
+NEXT:
+- one next action
+
+BLOCKER:
+- exact blocker only, if any
+
+Keep reports short.
+
+IMPORTANT:
+Do not stop after producing documentation, mockups, or plans.
+The goal is a real installable Loki application.
+
+Start by inspecting the current state.
+Do not modify anything until you know what already exists.

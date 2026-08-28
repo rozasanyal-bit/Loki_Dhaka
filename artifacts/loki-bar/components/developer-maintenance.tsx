@@ -20,7 +20,7 @@ const maintenanceCards: MaintenanceCard[] = [
 
 export function DeveloperMaintenancePortal() {
   return (
-    <div className="loki-view min-h-dvh bg-[radial-gradient(circle_at_top_left,rgba(201,164,94,0.18),transparent_30%),radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_30%),linear-gradient(180deg,#050505_0%,#0a0909_100%)] px-4 py-4 text-white sm:px-6 lg:px-8">
+    <div className="loki-view min-h-dvh bg-[radial-gradient(circle_at_top_left,#e2b34a0.18),transparent_30%),radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_30%),linear-gradient(180deg,#050505_0%,#0a0909_100%)] px-4 py-4 text-white sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <header className="loki-card overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.035] backdrop-blur-xl">
           <div className="h-1.5 w-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500" />

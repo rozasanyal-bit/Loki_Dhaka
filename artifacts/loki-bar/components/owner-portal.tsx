@@ -110,7 +110,7 @@ export function OwnerPortal() {
 
   return (
     <LokiPortalShell
-      accentClassName="bg-gradient-to-r from-[#c9a45e] via-[#8a6a30] to-[#3a2d14]"
+      accentClassName="bg-gradient-to-r from-[#e2b34a] via-[#8a6a30] to-[#3a2d14]"
       badge="Owner"
       title="The whole room."
       asideEyebrow="Signed in as"
@@ -122,7 +122,7 @@ export function OwnerPortal() {
         {/* ── Tonight's covers ── */}
         <article className="loki-card rounded-[1.75rem] border border-white/10 bg-white/[0.035] p-5 backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            <Users className="h-4 w-4 text-[#d8b16b]" />
+            <Users className="h-4 w-4 text-[#e2b34a]" />
             <p className="text-[11px] uppercase tracking-[0.28em] text-white/42">Tonight's covers</p>
             <span className="ml-auto text-2xl font-semibold text-white">
               {visitsLoading ? "—" : visits.length}
@@ -136,7 +136,7 @@ export function OwnerPortal() {
                   key={v.id}
                   className="flex items-center gap-3 rounded-2xl border border-white/8 bg-black/20 px-4 py-3"
                 >
-                  <CalendarDays className="h-3.5 w-3.5 shrink-0 text-[#d8b16b]" />
+                  <CalendarDays className="h-3.5 w-3.5 shrink-0 text-[#e2b34a]" />
                   <p className="font-mono text-xs text-white/55">{v.data.userId.slice(0, 14)}…</p>
                   <span className="ml-auto text-xs uppercase tracking-[0.22em] text-white/35">
                     {formatVisitDate(v.data.timestamp)}
@@ -152,11 +152,11 @@ export function OwnerPortal() {
         </article>
 
         {/* ── Owner-only staff invitation ── */}
-        <article className="loki-card rounded-[1.75rem] border border-[#d8b16b]/20 bg-[#d8b16b]/[0.04] p-5 backdrop-blur-xl">
-          <div className="flex items-center gap-3"><Link2 className="h-4 w-4 text-[#d8b16b]"/><p className="text-[11px] uppercase tracking-[0.28em] text-white/42">Owner-only staff invitation</p></div>
+        <article className="loki-card rounded-[1.75rem] border border-[#e2b34a]/20 bg-[#e2b34a]/[0.04] p-5 backdrop-blur-xl">
+          <div className="flex items-center gap-3"><Link2 className="h-4 w-4 text-[#e2b34a]"/><p className="text-[11px] uppercase tracking-[0.28em] text-white/42">Owner-only staff invitation</p></div>
           <p className="mt-2 text-sm text-white/55">Generate a short-lived signup link. Only Hersha can create these links.</p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="button" disabled={inviteBusy} onClick={async()=>{ if(!profile) return; setInviteBusy(true); try { const token=await createStaffInvite(profile.qrCode); setInviteLink(`${window.location.origin}/staff-signup?invite=${token}`) } finally { setInviteBusy(false) } }} className="inline-flex items-center gap-2 rounded-full bg-[#c9a45e] px-4 py-2 text-sm font-semibold text-black disabled:opacity-40">{inviteBusy?"Generating…":"Generate staff link"}</button>
+            <button type="button" disabled={inviteBusy} onClick={async()=>{ if(!profile) return; setInviteBusy(true); try { const token=await createStaffInvite(profile.qrCode); setInviteLink(`${window.location.origin}/staff-signup?invite=${token}`) } finally { setInviteBusy(false) } }} className="inline-flex items-center gap-2 rounded-full bg-[#e2b34a] px-4 py-2 text-sm font-semibold text-black disabled:opacity-40">{inviteBusy?"Generating…":"Generate staff link"}</button>
             {inviteLink && <button type="button" onClick={()=>navigator.clipboard?.writeText(inviteLink)} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-white/75"><Copy className="h-4 w-4"/>Copy link</button>}
           </div>
           {inviteLink && <p className="mt-3 break-all rounded-xl border border-white/8 bg-black/25 p-3 font-mono text-[10px] text-white/45">{inviteLink}</p>}
@@ -179,7 +179,7 @@ export function OwnerPortal() {
               {pendingStaff.map((u) => (
                 <div
                   key={u.id}
-                  className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#d8b16b]/15 bg-[#d8b16b]/5 px-4 py-3"
+                  className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#e2b34a]/15 bg-[#e2b34a]/5 px-4 py-3"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-white truncate">{u.data.name}</p>
@@ -223,7 +223,7 @@ export function OwnerPortal() {
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
                 placeholder="Name or email…"
-                className="w-full rounded-xl border border-white/10 bg-black/30 pl-8 pr-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#d8b16b]/40"
+                className="w-full rounded-xl border border-white/10 bg-black/30 pl-8 pr-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-[#e2b34a]/40"
               />
             </div>
 
@@ -231,7 +231,7 @@ export function OwnerPortal() {
             <select
               value={statusFilter}
               onChange={(e) => handleStatusFilterChange(e.target.value as CustomerStatus | "")}
-              className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/80 outline-none focus:border-[#d8b16b]/40"
+              className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/80 outline-none focus:border-[#e2b34a]/40"
             >
               <option value="" className="bg-black text-white">All statuses</option>
               {CUSTOMER_STATUSES.map((s) => (
@@ -264,7 +264,7 @@ export function OwnerPortal() {
                   value={u.data.status ?? DEFAULT_CUSTOMER_STATUS}
                   onChange={(e) => handleStatusChange(u.id, e.target.value as CustomerStatus)}
                   disabled={savingStatusId === u.id}
-                  className="rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-xs text-white/80 outline-none focus:border-[#d8b16b]/40 disabled:opacity-50 shrink-0"
+                  className="rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-xs text-white/80 outline-none focus:border-[#e2b34a]/40 disabled:opacity-50 shrink-0"
                 >
                   {CUSTOMER_STATUSES.map((s) => (
                     <option key={s} value={s} className="bg-black text-white">{s}</option>

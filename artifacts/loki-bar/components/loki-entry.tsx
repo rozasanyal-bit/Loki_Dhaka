@@ -30,7 +30,7 @@ export function LokiEntry({ onEnter }: { onEnter: () => void }) {
       ].join(" ")}
     >
       <div className="loki-entry-fade-in flex flex-col items-center gap-7 text-center">
-        <LokiMark className="h-28 w-28 drop-shadow-[0_0_60px_rgba(201,164,94,0.25)]" priority />
+        <LokiMark className="h-28 w-28 drop-shadow-[0_0_60px_#e2b34a0.25)]" priority />
         <p className="text-[11px] uppercase tracking-[0.42em] text-white/40">Loki Restaurant &amp; Bar, Dhaka</p>
       </div>
 
