@@ -1,0 +1,49 @@
+name: Build iOS (Unsigned)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Web App
+        run: pnpm --filter @workspace/loki-bar build
+
+      - name: Sync Capacitor
+        run: pnpm --filter @workspace/loki-bar exec cap sync
+
+      - name: Build iOS Archive
+        run: |
+          cd artifacts/loki-bar/ios/App
+          xcodebuild archive \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -archivePath build/App.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Upload Unsigned Archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-archive
+          path: artifacts/loki-bar/ios/App/build/App.xcarchive
