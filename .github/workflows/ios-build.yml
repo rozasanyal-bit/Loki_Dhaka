@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-ios:
@@ -15,21 +16,21 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.2
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22'
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build Web App
-        run: pnpm --filter @workspace/loki-bar build
-
-      - name: Sync Capacitor
-        run: pnpm --filter @workspace/loki-bar exec cap sync
+        run: pnpm --filter @workspace/loki-bar run build:mobile
 
       - name: Build iOS Archive
         run: |
