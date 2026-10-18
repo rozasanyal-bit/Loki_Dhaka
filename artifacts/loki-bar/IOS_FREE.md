@@ -7,11 +7,14 @@ Developer membership.
 From this folder, deploy it once:
 
 ```bash
-pnpm dlx firebase-tools login
+pnpm dlx firebase-tools login --no-localhost
+pnpm dlx firebase-tools login YOUR_AUTHORIZATION_CODE
 pnpm run hosting:deploy
 ```
 
 Sign in with the Google account that owns the Firebase project `loki-f4791`.
+The first command prints a Firebase sign-in link; after completing it, paste
+the authorization code it provides in place of `YOUR_AUTHORIZATION_CODE`.
 The command prints the live URL, normally `https://loki-f4791.web.app`.
 
 On the iPhone, open that address in Safari, tap Share, then choose **Add to
