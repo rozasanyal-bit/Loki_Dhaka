@@ -1,5 +1,8 @@
 ext {
-    minSdkVersion = 24
+    // The official Capacitor barcode scanner uses Android APIs introduced in
+    // Android 8.0 (API 26). Keeping this aligned prevents manifest-merger
+    // failures and avoids installing a scanner that cannot run.
+    minSdkVersion = 26
     compileSdkVersion = 36
     targetSdkVersion = 36
     androidxActivityVersion = '1.11.0'
