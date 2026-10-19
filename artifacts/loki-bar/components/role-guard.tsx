@@ -46,6 +46,7 @@ export function RoleGuard({ required, children }: Props) {
   }
 
   if (!user || profile?.role !== required) return null
+  if (profile.disabled || profile.approved !== true) return <div className="grid min-h-dvh place-content-center bg-black p-8 text-white text-center"><h1 className="text-2xl">{profile.disabled ? "Access suspended" : "Awaiting approval"}</h1><p className="mt-4">Loki must approve your invitation before you can use this portal.</p><a className="mt-6 underline" href="/login/">Return to sign in</a></div>
 
   return <>{children}</>
 }

@@ -1,40 +1,137 @@
 rules_version = '2';
 service cloud.firestore {
  match /databases/{database}/documents {
-  function isSignedIn(){return request.auth!=null;}
-  function uid(){return request.auth.uid;}
-  function callerRole(){return get(/databases/$(database)/documents/users/$(uid())).data.role;}
-  function isOwner(){return isSignedIn()&&callerRole()=="owner";}
-  function isStaff(){return isSignedIn()&&(callerRole()=="staff"||callerRole()=="owner");}
-  function isPrivileged(){return isSignedIn()&&(callerRole() in ["staff","owner","developer"]);}
+  function signed(){return request.auth != null;}
+  function me(){return request.auth.uid;}
+  function profile(){return get(/databases/$(database)/documents/publicProfiles/$(me())).data;}
+  function role(r){return signed() && profile().role == r && profile().approved == true && profile().get('disabled',false) == false;}
+  function owner(){return role('owner');}
+  function ops(){return owner() || role('management');}
+  function staff(){return ops() || role('staff');}
+  function dev(){return role('developer');}
+  function customer(){return role('customer');}
+  function text(v,n){return v is string && v.size()>0 && v.size()<=n;}
+  function keys(allowed){return request.resource.data.keys().hasOnly(allowed);}
+  function changed(allowed){return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);}
+  function inviteAccepted(userId,r){
+   let token=request.resource.data.inviteToken;
+   let before=get(/databases/$(database)/documents/staffInvites/$(token)).data;
+   let after=getAfter(/databases/$(database)/documents/staffInvites/$(token)).data;
+   return before.active == true && before.expiresAt > request.time && before.role == r
+     && after.usedBy == userId && after.active == false;
+  }
   match /publicProfiles/{userId} {
-   allow read: if (isSignedIn()&&uid()==userId)||isPrivileged();
-   allow create: if isSignedIn()&&uid()==userId&&request.resource.data.qrCode==uid()
-     && get(/databases/$(database)/documents/users/$(uid())).data.role == request.resource.data.role;
-   allow update: if isSignedIn()&&uid()==userId&&!request.resource.data.diff(resource.data).affectedKeys().hasAny(["role","qrCode","email","createdAt"]);
-   allow create,update: if isOwner(); allow delete: if isOwner();
+   allow get: if signed() && (me()==userId || owner() || dev());
+   allow list: if owner() || dev();
+   allow create: if signed() && me()==userId
+    && keys(['name','email','role','qrCode','createdAt','approved','disabled','inviteToken'])
+    && text(request.resource.data.name,80) && request.resource.data.email == request.auth.token.email
+    && request.resource.data.qrCode==userId && request.resource.data.createdAt==request.time
+    && request.resource.data.disabled == false
+    && ((request.resource.data.role=='customer' && request.resource.data.approved==true)
+      || (request.resource.data.role in ['staff','management','owner'] && request.resource.data.approved==false && inviteAccepted(userId,request.resource.data.role)));
+   allow update: if (signed() && me()==userId && changed(['name']) && text(request.resource.data.name,80))
+    || (owner() && resource.data.role in ['staff','management'] && changed(['approved','disabled']))
+    || (dev() && resource.data.role=='owner' && changed(['approved','disabled']));
   }
   match /users/{userId} {
-   allow read: if isPrivileged();
-   allow create: if isSignedIn()&&uid()==userId&&(request.resource.data.role=="customer"||(request.resource.data.role=="staff"&&request.resource.data.get("approved",false)==false));
-   allow update: if isSignedIn()&&uid()==userId&&!request.resource.data.diff(resource.data).affectedKeys().hasAny(["role","qrCode","email","status","createdAt","approved"]);
-   allow update: if isStaff()&&!request.resource.data.diff(resource.data).affectedKeys().hasAny(["role","qrCode","email","createdAt"]);
-   allow update: if isOwner(); allow delete: if isOwner();
-  }
-  match /visits/{visitId} {
-   allow read: if isPrivileged();
-   allow create: if isStaff()&&request.resource.data.staffId==uid()&&request.resource.data.userId is string&&request.resource.data.date is string;
-   allow update,delete: if isOwner();
+   allow get,list: if (staff() && resource.data.role=='customer') || (signed() && me()==userId && !customer()) || dev();
+   allow create: if signed() && me()==userId
+    && keys(['name','email','role','qrCode','createdAt','favoriteDrink','notes','status','approved'])
+    && request.resource.data.role==getAfter(/databases/$(database)/documents/publicProfiles/$(userId)).data.role
+    && request.resource.data.name==getAfter(/databases/$(database)/documents/publicProfiles/$(userId)).data.name
+    && request.resource.data.email==request.auth.token.email && request.resource.data.qrCode==userId
+    && request.resource.data.createdAt==request.time && request.resource.data.status=='Standard'
+    && request.resource.data.notes==[] && request.resource.data.favoriteDrink=='' && request.resource.data.approved==false;
+   allow update: if customer() && me()==userId && changed(['name']) && text(request.resource.data.name,80) && request.resource.data.name==getAfter(/databases/$(database)/documents/publicProfiles/$(userId)).data.name;
+   allow update: if staff() && resource.data.role=='customer'
+     && changed(['status','notes','seat','auditId'])
+     && request.resource.data.status in ['VIP','Preferred','Standard','Review','Probationary','Blacklisted']
+     && request.resource.data.notes is list && request.resource.data.notes.size()<=100
+     && text(request.resource.data.auditId,100)
+     && getAfter(/databases/$(database)/documents/audit/$(request.resource.data.auditId)).data.customerId==userId
+     && getAfter(/databases/$(database)/documents/audit/$(request.resource.data.auditId)).data.actorId==me()
+     && getAfter(/databases/$(database)/documents/audit/$(request.resource.data.auditId)).data.timestamp==request.time;
   }
   match /staffInvites/{token} {
-   allow read: if isOwner()||(resource.data.active==true&&resource.data.expiresAt>request.time&&resource.data.uses<resource.data.maxUses);
-   allow create: if isOwner()&&request.resource.data.createdBy==uid();
-   allow update,delete: if isOwner();
-   allow update: if resource.data.active == true && resource.data.expiresAt > request.time && resource.data.uses < resource.data.maxUses
-     && request.resource.data.createdBy == resource.data.createdBy
-     && request.resource.data.maxUses == resource.data.maxUses
-     && request.resource.data.uses == resource.data.uses + 1
-     && request.resource.data.active == (resource.data.uses + 1 < resource.data.maxUses);
+   allow get: if owner() || dev() || (resource.data.active==true && resource.data.expiresAt>request.time);
+   allow list: if owner() || dev();
+   allow create: if (owner() && request.resource.data.role in ['staff','management'] || dev() && request.resource.data.role=='owner')
+    && keys(['role','createdBy','createdAt','expiresAt','active','usedBy'])
+    && request.resource.data.createdBy==me() && request.resource.data.createdAt==request.time
+    && request.resource.data.expiresAt>request.time && request.resource.data.expiresAt<=request.time+duration.value(48,'h')
+    && request.resource.data.active==true && request.resource.data.usedBy=='';
+   allow update: if ((owner() || dev()) && changed(['active']) && request.resource.data.active==false)
+    || (signed() && resource.data.active==true && resource.data.expiresAt>request.time
+      && changed(['active','usedBy']) && request.resource.data.active==false && request.resource.data.usedBy==me()
+      && !exists(/databases/$(database)/documents/publicProfiles/$(me()))
+      && getAfter(/databases/$(database)/documents/publicProfiles/$(me())).data.role==resource.data.role
+      && getAfter(/databases/$(database)/documents/publicProfiles/$(me())).data.inviteToken==token);
+  }
+  match /settings/venue {
+   allow read: if signed();
+   allow create,update: if owner() && keys(['qrEpoch','maintenance'])
+    && request.resource.data.qrEpoch is int && request.resource.data.qrEpoch>=0 && request.resource.data.maintenance is bool;
+  }
+  function running(){return !exists(/databases/$(database)/documents/settings/venue) || get(/databases/$(database)/documents/settings/venue).data.maintenance==false;}
+  function epoch(){return exists(/databases/$(database)/documents/settings/venue) ? get(/databases/$(database)/documents/settings/venue).data.qrEpoch : 0;}
+  match /qrTokens/{token} {
+   allow get: if staff() || (customer() && resource.data.userId==me());
+   allow create: if customer() && running() && keys(['userId','createdAt','expiresAt','epoch','usedBy'])
+    && request.resource.data.userId==me() && request.resource.data.createdAt==request.time
+    && request.resource.data.expiresAt>request.time && request.resource.data.expiresAt<=request.time+duration.value(120,'s')
+    && request.resource.data.epoch==epoch() && request.resource.data.usedBy=='';
+   allow update: if staff() && running() && resource.data.usedBy=='' && resource.data.expiresAt>request.time && resource.data.epoch==epoch()
+    && changed(['usedBy']) && request.resource.data.usedBy==me()
+    && getAfter(/databases/$(database)/documents/visits/$(token)).data.staffId==me();
+  }
+  match /visits/{visitId} {
+   allow read: if staff() || (customer() && resource.data.userId==me());
+   allow create: if staff() && running() && keys(['userId','staffId','timestamp','date'])
+    && request.resource.data.staffId==me() && request.resource.data.timestamp==request.time
+    && request.resource.data.userId==get(/databases/$(database)/documents/qrTokens/$(visitId)).data.userId
+    && get(/databases/$(database)/documents/qrTokens/$(visitId)).data.usedBy==''
+    && get(/databases/$(database)/documents/qrTokens/$(visitId)).data.expiresAt>request.time
+    && get(/databases/$(database)/documents/qrTokens/$(visitId)).data.epoch==epoch()
+    && getAfter(/databases/$(database)/documents/qrTokens/$(visitId)).data.usedBy==me();
+  }
+  match /audit/{id} {
+   allow read: if ops();
+   allow create: if staff() && keys(['actorId','customerId','action','timestamp','reason'])
+    && request.resource.data.actorId==me() && request.resource.data.timestamp==request.time
+    && text(request.resource.data.reason,300) && text(request.resource.data.action,60)
+    && getAfter(/databases/$(database)/documents/users/$(request.resource.data.customerId)).data.auditId==id;
+  }
+  match /activity/{id} {
+   allow read: if ops() || (signed() && resource.data.userId==me());
+   allow create: if staff() && keys(['userId','name','body','createdAt']) && request.resource.data.userId==me()
+    && request.resource.data.name==profile().name && text(request.resource.data.body,2000) && request.resource.data.createdAt==request.time;
+  }
+  match /attendance/{id} {
+   allow read: if ops() || (signed() && resource.data.userId==me());
+   allow create: if staff() && keys(['userId','name','startedAt','endedAt']) && request.resource.data.userId==me()
+    && request.resource.data.name==profile().name && request.resource.data.startedAt==request.time && request.resource.data.endedAt==null;
+   allow update: if staff() && resource.data.userId==me() && resource.data.endedAt==null && changed(['endedAt']) && request.resource.data.endedAt==request.time;
+  }
+  match /issues/{id} {
+   allow read: if (signed() && resource.data.authorId==me()) || ops() || (dev() && resource.data.kind=='technical');
+   allow create: if signed() && profile().approved==true && profile().get('disabled',false)==false
+    && keys(['authorId','kind','body','status','createdAt','response']) && request.resource.data.authorId==me()
+    && request.resource.data.kind in ['complaint','feedback','maintenance','technical','operational']
+    && text(request.resource.data.body,2000) && request.resource.data.status=='new' && request.resource.data.response=='' && request.resource.data.createdAt==request.time;
+   allow update: if (ops() || dev() && resource.data.kind=='technical') && changed(['status','response'])
+    && request.resource.data.status in ['new','in-progress','resolved'] && request.resource.data.response is string && request.resource.data.response.size()<=2000;
+  }
+  match /notices/{id} {
+   allow read: if signed() && profile().approved==true && (resource.data.audience=='all' || resource.data.audience==profile().role || ops());
+   allow create: if ops() && keys(['body','audience','createdAt']) && text(request.resource.data.body,2000)
+    && request.resource.data.audience in ['all','customer','staff','management'] && request.resource.data.createdAt==request.time;
+   allow delete: if ops();
+  }
+  match /pushTokens/{id} {
+   allow read,delete: if signed() && resource.data.userId==me();
+   allow create,update: if signed() && profile().approved==true && keys(['userId','token','platform','updatedAt'])
+    && request.resource.data.userId==me() && text(request.resource.data.token,4096) && request.resource.data.updatedAt==request.time;
   }
  }
 }

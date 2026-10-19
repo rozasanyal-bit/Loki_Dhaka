@@ -27,6 +27,8 @@ export const DEFAULT_CUSTOMER_STATUS: CustomerStatus = "Standard"
 // Created when a new customer/owner account is set up.
 // The owner document uses userId = "abc123" (or the actual Firebase Auth UID).
 export interface PublicUserDoc {
+  approved?: boolean
+  disabled?: boolean
   name: string
   email: string
   createdAt: Timestamp
@@ -35,6 +37,7 @@ export interface PublicUserDoc {
 }
 
 export interface UserDoc {
+  disabled?: boolean
   name:          string          // e.g. "Hersha"
   email:         string          // e.g. "your-email@gmail.com"
   createdAt:     Timestamp       // serverTimestamp() at account creation

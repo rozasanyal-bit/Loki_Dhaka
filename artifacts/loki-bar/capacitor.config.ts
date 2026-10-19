@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli"
 
 const config: CapacitorConfig = {
-  appId: "com.loki.bar.system",
+  appId: "com.loki.lokidhaka",
   appName: "Loki Bar",
   // `next build` with output: 'export' writes the static site here.
   webDir: "out",

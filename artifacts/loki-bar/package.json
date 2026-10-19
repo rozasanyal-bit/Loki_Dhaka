@@ -18,7 +18,8 @@
     "export": "next build",
     "build:mobile": "pnpm run build && pnpm run cap:sync",
     "mobile:prepare": "pnpm build && pnpm exec cap sync",
-    "hosting:deploy": "pnpm run build && pnpm dlx firebase-tools deploy --only hosting --project loki-f4791"
+    "hosting:deploy": "pnpm run build && pnpm dlx firebase-tools deploy --only hosting --project loki-portal-final",
+    "test:rules": "node --test tests/firestore.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

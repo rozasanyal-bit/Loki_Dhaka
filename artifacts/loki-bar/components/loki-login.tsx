@@ -4,7 +4,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { signInWithEmailAndPassword } from "firebase/auth"
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth"
 import { doc, getDoc } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import type { PublicUserDoc } from "@/lib/firebase-types"
@@ -88,6 +88,7 @@ export function LokiLogin() {
           </button>
         </div>
 
+        <div className="flex flex-col gap-4 text-center text-sm text-[#f3deaf]"><a href="/signup/">New guest? Create an account</a><a href="/install/">Install on your phone</a><button onClick={async()=>{try{if(!email){setError("Enter your email above first.");return}await sendPasswordResetEmail(auth,email);setError("If this address has an account, password reset instructions have been sent.")}catch{setError("Unable to request reset. Check your email and connection.")}}}>Forgot password?</button></div>
         <p className="text-[11px] uppercase tracking-[0.34em] text-white/24">
           A private table-side experience
         </p>

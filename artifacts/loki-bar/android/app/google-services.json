@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "380301891746",
+    "project_id": "loki-portal-final",
+    "storage_bucket": "loki-portal-final.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:380301891746:android:fb78b080c307c4b1ac5ffb",
+        "android_client_info": {
+          "package_name": "com.loki.lokidhaka"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1syM2hRJ1FSk48feH4oP1tBlxQ-2NBGg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

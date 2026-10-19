@@ -1,271 +1,78 @@
-// lib/firebase-service.ts
-// ─────────────────────────────────────────────────────────────────────────────
-// All Firestore read/write helpers used by the app.
-// Import these in your components instead of calling Firestore directly.
-// ─────────────────────────────────────────────────────────────────────────────
-
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  addDoc,
-  updateDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  serverTimestamp,
-  Timestamp,
-  runTransaction,
-} from "firebase/firestore"
-
-import { db } from "@/lib/firebase"
-import type { UserDoc, PublicUserDoc, VisitDoc, CustomerStatus, StaffInviteDoc } from "@/lib/firebase-types"
-import { DEFAULT_CUSTOMER_STATUS } from "@/lib/firebase-types"
-
-// ─── helpers ─────────────────────────────────────────────────────────────────
-
-/** Return today's date as "YYYY-MM-DD" in the local timezone. */
-function todayISO(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+import { collection,doc,getDoc,getDocs,setDoc,updateDoc,addDoc,query,where,limit,serverTimestamp,Timestamp,runTransaction,writeBatch,onSnapshot,type QueryConstraint,type DocumentData } from 'firebase/firestore'
+import { createUserWithEmailAndPassword,deleteUser } from 'firebase/auth'
+import { auth,db } from './firebase'
+import type { Role } from './roles'
+export type Row = DocumentData & {id:string}
+export const dateISO=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dhaka',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
+export function formatDate(value: Timestamp|null|undefined){return value?.toDate().toLocaleString('en-GB',{timeZone:'Asia/Dhaka'})??'—'}
+export function randomToken(){return Array.from(crypto.getRandomValues(new Uint8Array(24)),b=>b.toString(16).padStart(2,'0')).join('')}
+export async function rows(name:string,...conditions:QueryConstraint[]):Promise<Row[]>{
+ const snap=await getDocs(query(collection(db,name),...conditions,limit(1000)))
+ return (snap.docs.map(d=>({...d.data(),id:d.id})) as Row[]).sort((a,b)=>(b.createdAt?.seconds??b.timestamp?.seconds??0)-(a.createdAt?.seconds??a.timestamp?.seconds??0))
 }
-
-// ─── users collection ────────────────────────────────────────────────────────
-
-/**
- * Create (or overwrite) a user document in `users/{userId}`.
- *
- * Call this once after Firebase Auth sign-up, passing the Auth UID as userId.
- *
- * Owner bootstrap example:
- *   await createUser("abc123", {
- *     name: "Hersha",
- *     email: "your-email@gmail.com",
- *     favoriteDrink: "",
- *     notes: [],
- *     role: "owner",
- *     qrCode: "abc123",
- *   })
- */
-export async function createUser(
-  userId: string,
-  fields: Omit<UserDoc, "createdAt">,
-): Promise<void> {
-  const createdAt = serverTimestamp()
-  await setDoc(doc(db, "users", userId), { ...fields, status: fields.status ?? DEFAULT_CUSTOMER_STATUS, createdAt } satisfies Omit<UserDoc, "createdAt"> & { createdAt: ReturnType<typeof serverTimestamp> })
-  await setDoc(doc(db, "publicProfiles", userId), { name: fields.name, email: fields.email, role: fields.role, qrCode: fields.qrCode, createdAt } satisfies Omit<PublicUserDoc, "createdAt"> & { createdAt: ReturnType<typeof serverTimestamp> })
+export function watchNotices(role:Role,callback:(r:Row[])=>void,onError:(e:Error)=>void){
+ return onSnapshot(query(collection(db,'notices'),where('audience','in',role==='owner'||role==='management'?['all','customer','staff','management']:['all',role]),limit(50)),s=>callback((s.docs.map(d=>({...d.data(),id:d.id})) as Row[]).sort((a,b)=>(b.createdAt?.seconds??0)-(a.createdAt?.seconds??0))),onError)
 }
-
-export async function getPublicProfile(userId: string): Promise<PublicUserDoc | null> {
-  const snap = await getDoc(doc(db, "publicProfiles", userId))
-  return snap.exists() ? (snap.data() as PublicUserDoc) : null
+export async function signup(name:string,email:string,password:string,invite=''){
+ const cred=await createUserWithEmailAndPassword(auth,email,password)
+ try{
+  const uid=cred.user.uid
+  await runTransaction(db,async tx=>{
+   let role:Role='customer'
+   if(invite){const s=await tx.get(doc(db,'staffInvites',invite));if(!s.exists()||!s.data().active||s.data().expiresAt.toMillis()<=Date.now())throw Error('This invitation has expired or was already used.');role=s.data().role;tx.update(s.ref,{active:false,usedBy:uid})}
+   const common={name:name.trim(),email:cred.user.email,role,qrCode:uid,createdAt:serverTimestamp()}
+   tx.set(doc(db,'publicProfiles',uid),{...common,approved:role==='customer',disabled:false,...(invite?{inviteToken:invite}:{})})
+   tx.set(doc(db,'users',uid),{...common,favoriteDrink:'',notes:[],status:'Standard',approved:false})
+  })
+ }catch(e){await deleteUser(cred.user).catch(()=>{});throw e}
 }
-
-/** Fetch a single private user document by their Firebase Auth UID. */
-export async function getUser(userId: string): Promise<UserDoc | null> {
-  const snap = await getDoc(doc(db, "users", userId))
-  return snap.exists() ? (snap.data() as UserDoc) : null
-}
-
-/**
- * Find a customer by their qrCode value.
- * The QR code stored on the customer's phone equals their userId.
- * Staff scan the QR → get the userId string → call this function.
- */
-export async function getUserByQrCode(qrCode: string): Promise<{ id: string; data: UserDoc } | null> {
-  const q = query(
-    collection(db, "users"),
-    where("qrCode", "==", qrCode),
-    limit(1),
-  )
-  const snap = await getDocs(q)
-  if (snap.empty) return null
-  const docSnap = snap.docs[0]
-  return { id: docSnap.id, data: docSnap.data() as UserDoc }
-}
-
-/** Update individual fields on a user document. */
-export async function updateUser(
-  userId: string,
-  fields: Partial<Omit<UserDoc, "createdAt" | "email" | "role" | "qrCode">>,
-): Promise<void> {
-  await updateDoc(doc(db, "users", userId), fields)
-}
-
-/** Add a freeform staff note to a user's `notes` array. */
-export async function addNoteToUser(userId: string, note: string): Promise<void> {
-  const userRef = doc(db, "users", userId)
-  const snap = await getDoc(userRef)
-  if (!snap.exists()) throw new Error(`User ${userId} not found`)
-  const existing: string[] = (snap.data() as UserDoc).notes ?? []
-  await updateDoc(userRef, { notes: [...existing, note] })
-}
-
-/**
- * Update a customer's internal status (VIP / Preferred / Standard / Review /
- * Probationary / Blacklisted). Staff and owner only — enforced by
- * firestore.rules, which blocks customers from writing this field on their
- * own document. Never surface this call from the customer portal.
- */
-export async function updateCustomerStatus(userId: string, status: CustomerStatus): Promise<void> {
-  await updateDoc(doc(db, "users", userId), { status })
-}
-
-/**
- * Fetch all user documents. Owner-only — enforced by firestore.rules.
- * Optionally filter by role or status.
- */
-export async function getAllUsers(filters?: {
-  status?: CustomerStatus
-}): Promise<Array<{ id: string; data: UserDoc }>> {
-  let q = query(collection(db, "users"), orderBy("createdAt", "desc"))
-  if (filters?.status) {
-    q = query(collection(db, "users"), where("status", "==", filters.status), orderBy("createdAt", "desc"))
-  }
-  const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ id: d.id, data: d.data() as UserDoc }))
-}
-
-/**
- * Fetch users with role=staff AND approved=false.
- * Used on the owner portal "Pending Staff Requests" section.
- */
-export async function getPendingStaffRequests(): Promise<Array<{ id: string; data: UserDoc }>> {
-  const q = query(
-    collection(db, "users"),
-    where("role", "==", "staff"),
-    where("approved", "==", false),
-  )
-  const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ id: d.id, data: d.data() as UserDoc }))
-}
-
-/**
- * Approve or reject a pending staff request.
- * Sets approved=true (approve) or deletes/downgrades the role (reject).
- */
-export async function setStaffApproval(userId: string, approved: boolean): Promise<void> {
-  if (approved) {
-    await updateDoc(doc(db, "users", userId), { approved: true })
-  } else {
-    await updateDoc(doc(db, "users", userId), { role: "customer", approved: false })
-  }
-}
-
-// ─── visits collection ───────────────────────────────────────────────────────
-
-/**
- * Log a visit when a staff member scans a customer's QR code.
- *
- * @param userId   - the customer's Firebase Auth UID (decoded from QR)
- * @param staffId  - the logged-in staff member's Firebase Auth UID
- * @returns the new visit document ID
- *
- * Visit document shape:
- *   { userId, date: "YYYY-MM-DD", timestamp: serverTimestamp(), staffId }
- */
-export async function logVisit(userId: string, staffId: string): Promise<string> {
-  const visitData: Omit<VisitDoc, "timestamp"> & { timestamp: ReturnType<typeof serverTimestamp> } = {
-    userId,
-    date:      todayISO(),
-    timestamp: serverTimestamp(),
-    staffId,
-  }
-  const ref = await addDoc(collection(db, "visits"), visitData)
-  return ref.id
-}
-
-/**
- * Fetch the most recent visits for a given customer, newest first.
- * Default limit = 10 (enough for the customer portal visit history card).
- */
-export async function getVisitsForUser(
-  userId: string,
-  maxResults = 10,
-): Promise<Array<{ id: string; data: VisitDoc }>> {
-  const q = query(
-    collection(db, "visits"),
-    where("userId", "==", userId),
-    orderBy("timestamp", "desc"),
-    limit(maxResults),
-  )
-  const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ id: d.id, data: d.data() as VisitDoc }))
-}
-
-/**
- * Fetch the most recent visits logged by a specific staff member.
- * Useful for the staff portal's shift summary.
- */
-export async function getVisitsByStaff(
-  staffId: string,
-  maxResults = 20,
-): Promise<Array<{ id: string; data: VisitDoc }>> {
-  const q = query(
-    collection(db, "visits"),
-    where("staffId", "==", staffId),
-    orderBy("timestamp", "desc"),
-    limit(maxResults),
-  )
-  const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ id: d.id, data: d.data() as VisitDoc }))
-}
-
-/**
- * Fetch all visits for today (across all customers).
- * Used on the owner portal for "Tonight's covers".
- */
-export async function getVisitsToday(): Promise<Array<{ id: string; data: VisitDoc }>> {
-  const today = todayISO()
-  const q = query(
-    collection(db, "visits"),
-    where("date", "==", today),
-    orderBy("timestamp", "desc"),
-  )
-  const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ id: d.id, data: d.data() as VisitDoc }))
-}
-
-// ─── utility: format Firestore Timestamp for display ─────────────────────────
-
-/**
- * Convert a Firestore Timestamp to a short display string like "Thu 18 Jun".
- * Safe to call with null/undefined (returns "—").
- */
-export function formatVisitDate(ts: Timestamp | null | undefined): string {
-  if (!ts) return "—"
-  const d = ts.toDate()
-  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
-}
-
-
-function randomInviteToken(): string {
-  const bytes = new Uint8Array(24)
-  if (typeof crypto !== "undefined" && "getRandomValues" in crypto) crypto.getRandomValues(bytes)
-  else for (let i=0;i<bytes.length;i++) bytes[i]=Math.floor(Math.random()*256)
-  return Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("")
-}
-export async function createStaffInvite(ownerId:string,hours=24,maxUses=5):Promise<string>{
- const token=randomInviteToken(); const expires=new Date(Date.now()+hours*60*60*1000)
- await setDoc(doc(db,"staffInvites",token),{createdAt:serverTimestamp(),expiresAt:Timestamp.fromDate(expires),createdBy:ownerId,active:true,uses:0,maxUses} satisfies Omit<StaffInviteDoc,"createdAt"|"expiresAt"> & {createdAt:ReturnType<typeof serverTimestamp>;expiresAt:Timestamp})
+export async function createInvite(role:'staff'|'management'|'owner'){
+ if(!auth.currentUser)throw Error('Sign in first.')
+ const token=randomToken()
+ await setDoc(doc(db,'staffInvites',token),{role,createdBy:auth.currentUser.uid,createdAt:serverTimestamp(),expiresAt:Timestamp.fromMillis(Date.now()+24*3600000),active:true,usedBy:''})
  return token
 }
-export async function getStaffInvite(token:string):Promise<StaffInviteDoc|null>{
- const snap=await getDoc(doc(db,"staffInvites",token)); if(!snap.exists()) return null; const data=snap.data() as StaffInviteDoc
- return data.active&&data.expiresAt.toDate()>new Date()&&data.uses<data.maxUses?data:null
+export const revokeInvite=(id:string)=>updateDoc(doc(db,'staffInvites',id),{active:false})
+export const approveMember=(id:string,approved:boolean,disabled=false)=>updateDoc(doc(db,'publicProfiles',id),{approved,disabled})
+export async function venue(){const s=await getDoc(doc(db,'settings','venue'));return s.exists()?s.data():{qrEpoch:0,maintenance:false}}
+export async function setVenue(change:{rotate?:boolean;maintenance?:boolean}){
+ await runTransaction(db,async tx=>{const ref=doc(db,'settings','venue');const s=await tx.get(ref);const v=s.exists()?s.data():{qrEpoch:0,maintenance:false};tx.set(ref,{qrEpoch:v.qrEpoch+(change.rotate?1:0),maintenance:change.maintenance??v.maintenance})})
 }
-export async function revokeStaffInvite(token:string):Promise<void>{await updateDoc(doc(db,"staffInvites",token),{active:false})}
+export async function issueQr(){
+ if(!auth.currentUser)throw Error('Sign in first.')
+ const v=await venue();if(v.maintenance)throw Error('Loki is being updated. Please ask staff for help.')
+ const token=randomToken();const expiresAt=Timestamp.fromMillis(Date.now()+90000)
+ await setDoc(doc(db,'qrTokens',token),{userId:auth.currentUser.uid,createdAt:serverTimestamp(),expiresAt,epoch:v.qrEpoch,usedBy:''})
+ return {value:`loki:checkin:${token}`,expiresAt:expiresAt.toMillis()}
+}
+export async function scanGuest(input:string){
+ const match=/^loki:checkin:([a-f0-9]{48})$/.exec(input.trim());if(!match)throw Error('Scan a current Loki QR. A customer UID is not a valid check-in token.')
+ const token=match[1];const s=await getDoc(doc(db,'qrTokens',token));if(!s.exists())throw Error('QR not found.')
+ const t=s.data();if(t.usedBy||t.expiresAt.toMillis()<Date.now())throw Error('QR already used or expired. Ask the guest to refresh it.')
+ const guest=await getDoc(doc(db,'users',t.userId));if(!guest.exists()||guest.data().role!=='customer')throw Error('Customer not found.')
+ return {token,guest:{...guest.data(),id:guest.id} as Row}
+}
+export async function checkIn(token:string){
+ const staffId=auth.currentUser?.uid;if(!staffId)throw Error('Sign in first.')
+ return runTransaction(db,async tx=>{const ref=doc(db,'qrTokens',token);const s=await tx.get(ref);if(!s.exists()||s.data().usedBy||s.data().expiresAt.toMillis()<Date.now())throw Error('QR already used or expired.')
+ tx.set(doc(db,'visits',token),{userId:s.data().userId,staffId,date:dateISO(),timestamp:serverTimestamp()});tx.update(ref,{usedBy:staffId})})
+}
+export async function changeCustomer(customerId:string,change:{status?:string;seat?:string;note?:string},reason:string){
+ if(!reason.trim())throw Error('Enter a reason for this change.')
+ const actorId=auth.currentUser?.uid;if(!actorId)throw Error('Sign in first.')
+ await runTransaction(db,async tx=>{const ref=doc(db,'users',customerId);const s=await tx.get(ref);if(!s.exists())throw Error('Customer not found.')
+ const auditRef=doc(collection(db,'audit'));const {note,...fields}=change
+ tx.update(ref,{...fields,...(note?{notes:[...(s.data().notes??[]),note.trim()].slice(-100)}:{}),auditId:auditRef.id})
+ tx.set(auditRef,{actorId,customerId,action:change.status?'status':change.seat!==undefined?'seating':'note',reason:reason.trim(),timestamp:serverTimestamp()})})
+}
+export async function submitIssue(kind:string,body:string){if(!auth.currentUser)throw Error('Sign in first.');await addDoc(collection(db,'issues'),{kind,body:body.trim(),authorId:auth.currentUser.uid,status:'new',response:'',createdAt:serverTimestamp()})}
+export const resolveIssue=(id:string,status:string,response:string)=>updateDoc(doc(db,'issues',id),{status,response})
+export const publishNotice=(body:string,audience:string)=>addDoc(collection(db,'notices'),{body:body.trim(),audience,createdAt:serverTimestamp()})
+export const startShift=(name:string)=>addDoc(collection(db,'attendance'),{userId:auth.currentUser!.uid,name,startedAt:serverTimestamp(),endedAt:null})
+export const endShift=(id:string)=>updateDoc(doc(db,'attendance',id),{endedAt:serverTimestamp()})
+export async function updateProfile(name:string){const batch=writeBatch(db);batch.update(doc(db,'publicProfiles',auth.currentUser!.uid),{name:name.trim()});batch.update(doc(db,'users',auth.currentUser!.uid),{name:name.trim()});await batch.commit()}
+export async function databaseHealth(){const started=performance.now();await getDoc(doc(db,'publicProfiles',auth.currentUser!.uid));return Math.round(performance.now()-started)}
+export async function savePushToken(token:string,platform:string){if(!auth.currentUser)return;const id=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token));const key=Array.from(new Uint8Array(id),b=>b.toString(16).padStart(2,'0')).join('');await setDoc(doc(db,'pushTokens',key),{userId:auth.currentUser.uid,token,platform,updatedAt:serverTimestamp()})}
+export {where,doc,db,getDoc,writeBatch}
 
-export async function consumeStaffInvite(token:string):Promise<boolean>{
-  const ref=doc(db,"staffInvites",token)
-  return runTransaction(db,async tx=>{
-    const snap=await tx.get(ref); if(!snap.exists()) return false
-    const data=snap.data() as StaffInviteDoc
-    if(!data.active||data.expiresAt.toDate()<=new Date()||data.uses>=data.maxUses) return false
-    tx.update(ref,{uses:data.uses+1,active:data.uses+1>=data.maxUses?false:data.active})
-    return true
-  })
-}
+export const recordActivity=(name:string,body:string)=>addDoc(collection(db,'activity'),{userId:auth.currentUser!.uid,name,body:body.trim(),createdAt:serverTimestamp()})

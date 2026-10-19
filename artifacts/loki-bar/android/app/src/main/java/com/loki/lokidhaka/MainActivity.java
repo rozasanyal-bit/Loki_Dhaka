@@ -1,4 +1,4 @@
-package com.loki.bar.system;
+package com.loki.lokidhaka;
 
 import com.getcapacitor.BridgeActivity;
 

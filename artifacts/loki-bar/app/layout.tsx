@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, Cormorant_Garamond } from 'next/font/google'
 import './globals.css'
+import { ConfigurationGate } from '@/components/configuration-gate'
 import { ServiceWorkerRegister } from '@/components/service-worker-register'
 import { MobileBootstrap } from '@/components/mobile-bootstrap'
 import { AuthProvider } from '@/lib/auth-context'
@@ -39,8 +40,6 @@ export const viewport: Viewport = {
   themeColor: '#060606',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
 }
 
@@ -48,11 +47,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} bg-background`}>
       <body className="font-sans antialiased bg-background text-foreground overflow-x-hidden">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ConfigurationGate><AuthProvider>{children}<MobileBootstrap /></AuthProvider></ConfigurationGate>
         <ServiceWorkerRegister />
-        <MobileBootstrap />
       </body>
     </html>
   )
