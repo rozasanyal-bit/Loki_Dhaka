@@ -36,7 +36,7 @@ jobs:
         run: |
           cd artifacts/loki-bar/ios/App
           xcodebuild archive \
-            -workspace App.xcworkspace \
+            -project App.xcodeproj \
             -scheme App \
             -archivePath build/App.xcarchive \
             CODE_SIGNING_ALLOWED=NO \
