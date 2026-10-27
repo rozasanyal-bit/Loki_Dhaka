@@ -14,13 +14,26 @@ export function watchNotices(role:Role,callback:(r:Row[])=>void,onError:(e:Error
  return onSnapshot(query(collection(db,'notices'),where('audience','in',role==='owner'||role==='management'?['all','customer','staff','management']:['all',role]),limit(50)),s=>callback((s.docs.map(d=>({...d.data(),id:d.id})) as Row[]).sort((a,b)=>(b.createdAt?.seconds??0)-(a.createdAt?.seconds??0))),onError)
 }
 export async function signup(name:string,email:string,password:string,invite=''){
- const cred=await createUserWithEmailAndPassword(auth,email,password)
+ const cleanName=name.trim(),cleanEmail=email.trim()
+ if(!cleanName||cleanName.length>80)throw Error('Enter a name of up to 80 characters.')
+ if(password.length<8)throw Error('Use at least 8 characters for your password.')
+ if(invite){
+  if(!/^[a-f0-9]{48}$/.test(invite))throw Error('This invitation link is invalid. Ask Loki for a fresh link.')
+  let invitation
+  try{invitation=await getDoc(doc(db,'staffInvites',invite))}
+  catch(error){
+   if(error instanceof Error&&error.message.includes('permission-denied'))throw Error('This invitation has expired or was already used.')
+   throw error
+  }
+  if(!invitation.exists()||!invitation.data().active||invitation.data().expiresAt?.toMillis()<=Date.now())throw Error('This invitation has expired or was already used.')
+ }
+ const cred=await createUserWithEmailAndPassword(auth,cleanEmail,password)
  try{
   const uid=cred.user.uid
   await runTransaction(db,async tx=>{
    let role:Role='customer'
    if(invite){const s=await tx.get(doc(db,'staffInvites',invite));if(!s.exists()||!s.data().active||s.data().expiresAt.toMillis()<=Date.now())throw Error('This invitation has expired or was already used.');role=s.data().role;tx.update(s.ref,{active:false,usedBy:uid})}
-   const common={name:name.trim(),email:cred.user.email,role,qrCode:uid,createdAt:serverTimestamp()}
+   const common={name:cleanName,email:cred.user.email,role,qrCode:uid,createdAt:serverTimestamp()}
    tx.set(doc(db,'publicProfiles',uid),{...common,approved:role==='customer',disabled:false,...(invite?{inviteToken:invite}:{})})
    tx.set(doc(db,'users',uid),{...common,favoriteDrink:'',notes:[],status:'Standard',approved:false})
   })
