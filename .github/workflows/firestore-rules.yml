@@ -1,0 +1,54 @@
+name: Firestore Security Rules
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "artifacts/loki-bar/firestore.rules"
+      - "artifacts/loki-bar/firebase.json"
+      - "artifacts/loki-bar/tests/**"
+      - "artifacts/loki-bar/lib/firebase-service.ts"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - ".github/workflows/firestore-rules.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "artifacts/loki-bar/firestore.rules"
+      - "artifacts/loki-bar/firebase.json"
+      - "artifacts/loki-bar/tests/**"
+      - "artifacts/loki-bar/lib/firebase-service.ts"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - ".github/workflows/firestore-rules.yml"
+  workflow_dispatch:
+
+jobs:
+  rules:
+    name: Validate role and privacy rules
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run Firestore rules tests against emulator
+        run: >
+          pnpm exec firebase emulators:exec
+          --only firestore
+          --project demo-loki
+          --config artifacts/loki-bar/firebase.json
+          "pnpm --filter @workspace/loki-bar run test:rules"
