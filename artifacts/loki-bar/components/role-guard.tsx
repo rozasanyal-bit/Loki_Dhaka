@@ -26,14 +26,15 @@ interface Props {
 }
 
 export function RoleGuard({ required, children }: Props) {
-  const { user, profile, loading } = useAuthContext()
+  const { user, profile, loading, error } = useAuthContext()
   const router = useRouter()
 
   useEffect(() => {
     if (loading) return
     if (!user) { router.replace("/login"); return }
+    if (error) return
     if (profile?.role !== required) { router.replace("/login") }
-  }, [loading, user, profile, required, router])
+  }, [loading, user, profile, error, required, router])
 
   if (loading) {
     return (
@@ -44,6 +45,8 @@ export function RoleGuard({ required, children }: Props) {
       </div>
     )
   }
+
+  if (user && error) return <div className="grid min-h-dvh place-content-center bg-black p-8 text-center text-white"><h1 className="text-2xl">Unable to verify access</h1><p className="mt-4 max-w-sm text-white/70">{error}</p><button className="mt-6 underline" onClick={() => window.location.reload()}>Try again</button></div>
 
   if (!user || profile?.role !== required) return null
   if (profile.disabled || profile.approved !== true) return <div className="grid min-h-dvh place-content-center bg-black p-8 text-white text-center"><h1 className="text-2xl">{profile.disabled ? "Access suspended" : "Awaiting approval"}</h1><p className="mt-4">Loki must approve your invitation before you can use this portal.</p><a className="mt-6 underline" href="/login/">Return to sign in</a></div>
