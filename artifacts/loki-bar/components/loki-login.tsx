@@ -22,11 +22,14 @@ export function LokiLogin() {
     setError(null)
     setLoading(true)
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, password)
+      const cred = await signInWithEmailAndPassword(auth, email.trim(), password)
       const snap = await getDoc(doc(db, "publicProfiles", cred.user.uid))
       const profile = snap.exists() ? (snap.data() as PublicUserDoc) : null
-      const route = profile?.role && isRole(profile.role) ? ROLE_ROUTES[profile.role] : "/customer"
-      router.push(route)
+      if (!profile || !isRole(profile.role)) {
+        setError("Your account profile is missing or incomplete. Contact Loki support.")
+        return
+      }
+      router.replace(ROLE_ROUTES[profile.role])
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Login failed."
       setError(msg.includes("invalid-credential") ? "Wrong email or password." : msg)
@@ -81,7 +84,7 @@ export function LokiLogin() {
           <button
             type="button"
             onClick={handleLogin}
-            disabled={loading || !email || !password}
+            disabled={loading || !email.trim() || !password}
             className="loki-button w-full rounded-full bg-[#e2b34a] py-3.5 text-sm font-semibold text-black disabled:opacity-40 motion-safe:transform-gpu"
           >
             {loading ? "Signing in…" : "Enter Loki"}
