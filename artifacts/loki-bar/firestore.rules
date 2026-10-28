@@ -123,7 +123,8 @@ service cloud.firestore {
     && request.resource.data.status in ['new','in-progress','resolved'] && request.resource.data.response is string && request.resource.data.response.size()<=2000;
   }
   match /notices/{id} {
-   allow read: if signed() && profile().approved==true && (resource.data.audience=='all' || resource.data.audience==profile().role || ops());
+   allow read: if signed() && profile().approved==true && profile().get('disabled',false)==false
+    && (resource.data.audience=='all' || resource.data.audience==profile().role || ops());
    allow create: if ops() && keys(['body','audience','createdAt']) && text(request.resource.data.body,2000)
     && request.resource.data.audience in ['all','customer','staff','management'] && request.resource.data.createdAt==request.time;
    allow delete: if ops();
