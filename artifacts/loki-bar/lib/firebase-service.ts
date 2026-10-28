@@ -22,7 +22,7 @@ export async function signup(name:string,email:string,password:string,invite='')
   let invitation
   try{invitation=await getDoc(doc(db,'staffInvites',invite))}
   catch(error){
-   if(error instanceof Error&&error.message.includes('permission-denied'))throw Error('This invitation has expired or was already used.')
+   if(error instanceof Error && 'code' in error && error.code==='permission-denied')throw Error('This invitation has expired or was already used.')
    throw error
   }
   if(!invitation.exists()||!invitation.data().active||invitation.data().expiresAt?.toMillis()<=Date.now())throw Error('This invitation has expired or was already used.')
