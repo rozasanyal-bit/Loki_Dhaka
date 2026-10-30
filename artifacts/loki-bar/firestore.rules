@@ -130,9 +130,18 @@ service cloud.firestore {
    allow delete: if ops();
   }
   match /pushTokens/{id} {
+   function validTokenWrite(){
+    return signed() && profile().approved==true && profile().get('disabled',false)==false
+     && keys(['userId','token','platform','updatedAt'])
+     && request.resource.data.userId==me()
+     && text(request.resource.data.token,4096)
+     && text(request.resource.data.platform,40)
+     && request.resource.data.updatedAt==request.time;
+   }
    allow read,delete: if signed() && resource.data.userId==me();
-   allow create,update: if signed() && profile().approved==true && keys(['userId','token','platform','updatedAt'])
-    && request.resource.data.userId==me() && text(request.resource.data.token,4096) && request.resource.data.updatedAt==request.time;
+   allow create: if validTokenWrite();
+   allow update: if validTokenWrite() && resource.data.userId==me()
+    && changed(['token','platform','updatedAt']);
   }
  }
 }

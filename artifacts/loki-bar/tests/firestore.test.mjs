@@ -23,3 +23,14 @@ test('status change requires immutable audit',async()=>{const d=db('staff');awai
 test('complaint routing and management resolution',async()=>{await seed('issues/i',{authorId:'customer',kind:'complaint',body:'Review',status:'new',response:'',createdAt:now()});await ok(getDoc(doc(db('customer'),'issues','i')));await ok(getDoc(doc(db('management'),'issues','i')));for(const id of ['staff','developer','other'])await deny(getDoc(doc(db(id),'issues','i')));await ok(updateDoc(doc(db('management'),'issues','i'),{status:'resolved',response:'Reviewed'}))})
 test('staff cannot create invitations; management cannot create owner invites',async()=>{for(const id of ['staff','management'])await deny(setDoc(doc(db(id),'staffInvites','x'),{role:'owner',createdBy:id,createdAt:time(),expiresAt:Timestamp.fromMillis(Date.now()+60000),active:true,usedBy:''}))})
 test('private notices and suspended staff access',async()=>{await seed('notices/n',{audience:'staff',body:'Shift',createdAt:now()});await deny(getDoc(doc(db('customer'),'notices','n')));await ok(getDoc(doc(db('staff'),'notices','n')));await seed('publicProfiles/staff',{...prof('staff'),disabled:true});await deny(getDoc(doc(db('staff'),'users','customer')));await deny(getDoc(doc(db('staff'),'notices','n')))})
+
+test('push tokens cannot be hijacked or registered by suspended accounts',async()=>{
+ await seed('pushTokens/shared',{userId:'customer',token:'old-token',platform:'android',updatedAt:now()})
+ await deny(setDoc(doc(db('staff'),'pushTokens','shared'),{userId:'staff',token:'replacement',platform:'android',updatedAt:time()}))
+ await ok(updateDoc(doc(db('customer'),'pushTokens','shared'),{token:'new-token',platform:'android',updatedAt:time()}))
+ await deny(updateDoc(doc(db('customer'),'pushTokens','shared'),{userId:'staff',updatedAt:time()}))
+ await ok(setDoc(doc(db('customer'),'pushTokens','fresh'),{userId:'customer',token:'fresh-token',platform:'android',updatedAt:time()}))
+ await deny(setDoc(doc(db('customer'),'pushTokens','invalid'),{userId:'customer',token:'token',platform:'',updatedAt:time()}))
+ await seed('publicProfiles/customer',{...prof('customer'),disabled:true})
+ await deny(setDoc(doc(db('customer'),'pushTokens','suspended'),{userId:'customer',token:'token',platform:'android',updatedAt:time()}))
+})
