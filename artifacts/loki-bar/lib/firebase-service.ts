@@ -22,7 +22,7 @@ export async function signup(name:string,email:string,password:string,invite='')
   let invitation
   try{invitation=await getDoc(doc(db,'staffInvites',invite))}
   catch(error){
-   if(error instanceof Error&&error.message.includes('permission-denied'))throw Error('This invitation has expired or was already used.')
+   if(error instanceof Error && 'code' in error && error.code==='permission-denied')throw Error('This invitation has expired or was already used.')
    throw error
   }
   if(!invitation.exists()||!invitation.data().active||invitation.data().expiresAt?.toMillis()<=Date.now())throw Error('This invitation has expired or was already used.')
@@ -68,6 +68,9 @@ export async function scanGuest(input:string){
 export async function checkIn(token:string){
  const staffId=auth.currentUser?.uid;if(!staffId)throw Error('Sign in first.')
  return runTransaction(db,async tx=>{const ref=doc(db,'qrTokens',token);const s=await tx.get(ref);if(!s.exists()||s.data().usedBy||s.data().expiresAt.toMillis()<Date.now())throw Error('QR already used or expired.')
+ const settings=await tx.get(doc(db,'settings','venue'))
+ if(settings.exists() && settings.data().maintenance===true)throw Error('Check-ins are paused for maintenance.')
+ if(s.data().epoch!==(settings.exists()?settings.data().qrEpoch:0))throw Error('This QR was invalidated. Ask the guest to refresh it.')
  tx.set(doc(db,'visits',token),{userId:s.data().userId,staffId,date:dateISO(),timestamp:serverTimestamp()});tx.update(ref,{usedBy:staffId})})
 }
 export async function changeCustomer(customerId:string,change:{status?:string;seat?:string;note?:string},reason:string){
