@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "loki-portal-dhaka",
     "public": "out",
     "ignore": [
       "firebase.json",
